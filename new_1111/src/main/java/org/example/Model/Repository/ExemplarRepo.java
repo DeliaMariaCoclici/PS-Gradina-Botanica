@@ -1,7 +1,6 @@
 package org.example.Model.Repository;
 
 import org.example.Model.Exemplar;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,15 +13,14 @@ public class ExemplarRepo extends Repo {
 
     private void initializeDatabase() {
         String sql = "CREATE TABLE IF NOT EXISTS Exemplar (" +
-                "id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "zona VARCHAR(255) NOT NULL, " +
-                "imagine VARCHAR(255), " +
-                "planta_id INT, " +
+                "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "zona VARCHAR(255)," +
+                "imagine VARCHAR(255)," +
+                "planta_id INT," +
                 "FOREIGN KEY (planta_id) REFERENCES Planta(id) ON DELETE CASCADE)";
         executeInitScript(sql);
     }
 
-    // ── Mapare ResultSet → Exemplar ────────────────────────────────────────────
     private Exemplar mapRow(ResultSet rs) throws SQLException {
         return new Exemplar(
                 rs.getInt("id"),
@@ -33,14 +31,11 @@ public class ExemplarRepo extends Repo {
         );
     }
 
-    // ── CRUD ───────────────────────────────────────────────────────────────────
     public List<Exemplar> getAllExemplare() {
         List<Exemplar> list = new ArrayList<>();
-        String sql = "SELECT e.id, e.zona, e.imagine, e.planta_id, p.denumire " +
-                "FROM Exemplar e LEFT JOIN Planta p ON e.planta_id = p.id";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        String sql = "SELECT e.id, e.zona, e.imagine, e.planta_id, p.denumire FROM Exemplar e " +
+                "LEFT JOIN Planta p ON e.planta_id=p.id";
+        try (Connection c = getConnection(); PreparedStatement s = c.prepareStatement(sql); ResultSet rs = s.executeQuery()) {
             while (rs.next()) list.add(mapRow(rs));
         } catch (SQLException e) {
             System.err.println("[getAllExemplare] " + e.getMessage());
@@ -62,18 +57,14 @@ public class ExemplarRepo extends Repo {
         return executeUpdate("DELETE FROM Exemplar WHERE id=?", id);
     }
 
-    // ── Căutare după specie ────────────────────────────────────────────────────
     public List<Exemplar> findBySpecie(String specie) {
         List<Exemplar> list = new ArrayList<>();
-        String sql = "SELECT e.id, e.zona, e.imagine, e.planta_id, p.denumire " +
-                "FROM Exemplar e JOIN Planta p ON e.planta_id = p.id " +
-                "WHERE p.specie = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, specie);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) list.add(mapRow(rs));
-            }
+        String sql = "SELECT e.id,e.zona,e.imagine,e.planta_id,p.denumire FROM Exemplar e " +
+                "JOIN Planta p ON e.planta_id=p.id WHERE p.specie=?";
+        try (Connection c = getConnection(); PreparedStatement s = c.prepareStatement(sql)) {
+            s.setString(1, specie);
+            ResultSet rs = s.executeQuery();
+            while (rs.next()) list.add(mapRow(rs));
         } catch (SQLException e) {
             System.err.println("[findBySpecie] " + e.getMessage());
         }

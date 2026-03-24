@@ -1,355 +1,271 @@
 package org.example.View;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import org.example.Presenter.GradinaBotanicaGUI;
 import org.example.Presenter.GradinaBotanicaPresenter;
+
+import javax.swing.*;
+import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
+import java.io.File;
 
 public class DesktopAplic extends JFrame implements GradinaBotanicaGUI {
 
-    // ── Câmpuri plante ────────────────────────────────────────────────────────
-    private JTextField textField_planta_id;
-    private JTextField textField_denumire_planta;
-    private JTextField textField_tip;
-    private JTextField textField_specie;
-    private JTextField textField_imagine;
-    private JCheckBox  ePlantaCarnivoraCheckBox;
+    private final JTextField textField_planta_id = new JTextField(4);
+    private final JTextField textField_denumire = new JTextField(12);
+    private final JTextField textField_tip = new JTextField(10);
+    private final JTextField textField_specie = new JTextField(10);
+    private final JTextField textField_imagine = new JTextField(20);
 
-    // ── Butoane plante ────────────────────────────────────────────────────────
-    private JButton adaugaPlantaButton;
-    private JButton button_editeaza_planta;
-    private JButton stergerePlantaButton;
-    private JButton vizualizareListaButton;
-    private JButton filtrareListaPlanteButton;
-    private JButton salvareListaPlanteButton;
-    private JComboBox<String> ComboBox_sort;
-    private JTable table1;
+    // două controale diferite: unul pentru formular, unul pentru filtru
+    private final JCheckBox checkBoxCarnivora = new JCheckBox("Este carnivoră");
+    private final JComboBox<String> comboCarnivoraFiltru = new JComboBox<>(new String[]{"", "Da", "Nu"});
 
-    // ── Câmpuri exemplare ─────────────────────────────────────────────────────
-    private JTextField textField_id_exemplar;
-    private JTextField textField_zona;
-    private JTextField textField_imagine_exemplar;
-    private JTextField textField_cauta;
+    private final JTextField filter_tip = new JTextField(8);
+    private final JTextField filter_specie = new JTextField(8);
+    private final JComboBox<String> combo_sort = new JComboBox<>();
 
-    // ── Butoane exemplare ─────────────────────────────────────────────────────
-    private JButton adaugaExemplarButton;
-    private JButton button_editeaza_exemplar;
-    private JButton stergeExemplarButton;
-    private JButton cautaButton;
-    private JTable table2;
+    private final JTextField textField_exemplar_id = new JTextField(4);
+    private final JTextField textField_zona = new JTextField(10);
+    private final JTextField textField_imagine_ex = new JTextField(15);
+    private final JTextField textField_exemplar_planta_id = new JTextField(4);
+    private final JTextField textField_cauta = new JTextField(10);
 
-    // ── TextArea ──────────────────────────────────────────────────────────────
-    private JTextArea textArea_afisare_lista;
+    private final JTable tablePlante = new JTable();
+    private final JTable tableExemplare = new JTable();
+    private final JTextArea textArea = new JTextArea();
 
-    private GradinaBotanicaPresenter presenter;
+    private final GradinaBotanicaPresenter presenter;
 
     public DesktopAplic() {
-        setTitle("Grădina Botanică");
+        setTitle("🌿 Grădina Botanică");
         setSize(1100, 700);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        initComponents();
+        initCombo();
         setContentPane(buildUI());
-
-        ComboBox_sort.addItem("denumire");
-        ComboBox_sort.addItem("tip");
-        ComboBox_sort.addItem("specie");
-        ComboBox_sort.setSelectedIndex(0);
-
         presenter = new GradinaBotanicaPresenter(this);
-
-        // ── Listeners plante ──────────────────────────────────────────────────
-        adaugaPlantaButton.addActionListener(e -> presenter.adaugaPlanta());
-        button_editeaza_planta.addActionListener(e -> presenter.actualizeazaPlanta());
-        stergerePlantaButton.addActionListener(e -> presenter.stergePlanta());
-        vizualizareListaButton.addActionListener(e -> presenter.afiseazaToatePlantele());
-        filtrareListaPlanteButton.addActionListener(e -> presenter.filtreazaPlante());
-        //salvareListaPlanteButton.addActionListener(e -> presenter.salveazaDate());
-        ComboBox_sort.addActionListener(e -> presenter.sorteazaPlante());
-
-        // ── Listeners exemplare ───────────────────────────────────────────────
-        adaugaExemplarButton.addActionListener(e -> {
-            textField_id_exemplar.setText("");
-            presenter.adaugaExemplar();
-        });
-        button_editeaza_exemplar.addActionListener(e -> presenter.actualizeazaExemplar());
-        stergeExemplarButton.addActionListener(e -> {
-            String id = getExemplarId();
-            if (id != null && !id.isEmpty()) {
-                presenter.stergeExemplar();
-            } else {
-                showMessage("Eroare", "Selectați un exemplar din tabel pentru a-l șterge!");
-            }
-        });
-        cautaButton.addActionListener(e -> presenter.cautaExemplare());
-
-        // ── Selecție tabel plante ─────────────────────────────────────────────
-        table1.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && table1.getSelectedRow() != -1)
-                populateFormWithSelectedRow();
-        });
-
-        // ── Selecție tabel exemplare ──────────────────────────────────────────
-        table2.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && table2.getSelectedRow() != -1)
-                populateExemplarFormWithSelectedRow();
-        });
-
-        presenter.afiseazaToatePlantele();
-        presenter.afiseazaToateExemplarele();
-
         setVisible(true);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // INIȚIALIZARE COMPONENTE
-    // ══════════════════════════════════════════════════════════════════════════
-
-    private void initComponents() {
-        textField_planta_id        = new JTextField(5);
-        textField_denumire_planta  = new JTextField(15);
-        textField_tip              = new JTextField(12);
-        textField_specie           = new JTextField(12);
-        textField_imagine          = new JTextField(15);
-        ePlantaCarnivoraCheckBox   = new JCheckBox("Carnivoră");
-
-        adaugaPlantaButton         = new JButton("Adaugă plantă");
-        button_editeaza_planta     = new JButton("Editează plantă");
-        stergerePlantaButton       = new JButton("Șterge plantă");
-        vizualizareListaButton     = new JButton("Vizualizează");
-        filtrareListaPlanteButton  = new JButton("Filtrează");
-        salvareListaPlanteButton   = new JButton("Salvează CSV");
-        ComboBox_sort              = new JComboBox<>();
-
-        table1 = new JTable(new DefaultTableModel(
-                new String[]{"ID", "Denumire", "Tip", "Specie", "Carnivoră", "Imagine"}, 0));
-        table1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table1.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-
-        textField_id_exemplar      = new JTextField(5);
-        textField_zona             = new JTextField(12);
-        textField_imagine_exemplar = new JTextField(15);
-        textField_cauta            = new JTextField(15);
-
-        adaugaExemplarButton       = new JButton("Adaugă exemplar");
-        button_editeaza_exemplar   = new JButton("Editează exemplar");
-        stergeExemplarButton       = new JButton("Șterge exemplar");
-        cautaButton                = new JButton("Caută");
-
-        table2 = new JTable(new DefaultTableModel(
-                new String[]{"ID", "Zonă", "Imagine", "ID Plantă", "Denumire Plantă"}, 0));
-        table2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table2.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-
-        textArea_afisare_lista = new JTextArea();
-        textArea_afisare_lista.setEditable(false);
-        textArea_afisare_lista.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+    private void initCombo() {
+        combo_sort.addItem("denumire");
+        combo_sort.addItem("tip");
+        combo_sort.addItem("specie");
     }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // CONSTRUCȚIE UI
-    // ══════════════════════════════════════════════════════════════════════════
 
     private JPanel buildUI() {
         JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("🌿 Plante",    buildPlanteTab());
-        tabs.addTab("🔍 Exemplare", buildExemplareTab());
-        tabs.addTab("📋 Listă",     new JScrollPane(textArea_afisare_lista));
+        tabs.addTab("Plante", buildPlantePanel());
+        tabs.addTab("Exemplare", buildExemplarePanel());
+        tabs.addTab("Listă", new JScrollPane(textArea));
 
         JPanel root = new JPanel(new BorderLayout());
         root.add(tabs, BorderLayout.CENTER);
         return root;
     }
 
-    private JPanel buildPlanteTab() {
-        JPanel panel = new JPanel(new BorderLayout(8, 8));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        panel.add(buildPlanteForm(), BorderLayout.NORTH);
-        panel.add(new JScrollPane(table1), BorderLayout.CENTER);
-        panel.add(buildPlanteSortFilter(), BorderLayout.SOUTH);
-        return panel;
-    }
+    private JPanel buildPlantePanel() {
+        // ─── Butoane ───────────────────────────────────────────────
+        JButton add = new JButton("Adaugă");
+        JButton edit = new JButton("Editează");
+        JButton del = new JButton("Șterge");
+        JButton view = new JButton("Afișează toate");
+        JButton filter = new JButton("Filtrează");
+        JButton sort = new JButton("Sortează");
 
-    private JPanel buildPlanteForm() {
+        add.addActionListener(e -> presenter.adaugaPlanta());
+        edit.addActionListener(e -> presenter.actualizeazaPlanta());
+        del.addActionListener(e -> presenter.stergePlanta());
+        view.addActionListener(e -> presenter.afiseazaToatePlantele());
+        filter.addActionListener(e -> presenter.filtreazaPlante());
+        sort.addActionListener(e -> presenter.sorteazaPlante());
+
+        // ─── Formular detalii plante (3 rânduri) ───────────────────
         JPanel form = new JPanel(new GridBagLayout());
         form.setBorder(BorderFactory.createTitledBorder("Detalii plantă"));
         GridBagConstraints g = new GridBagConstraints();
-        g.insets = new Insets(4, 6, 4, 6);
+        g.insets = new Insets(5, 6, 5, 6);
+        g.fill = GridBagConstraints.HORIZONTAL;
         g.anchor = GridBagConstraints.WEST;
 
-        g.gridy = 0;
-        g.gridx = 0; form.add(new JLabel("ID:"), g);
+        // rând 1
+        g.gridx = 0; g.gridy = 0; form.add(new JLabel("ID:"), g);
         g.gridx = 1; form.add(textField_planta_id, g);
         g.gridx = 2; form.add(new JLabel("Denumire:"), g);
-        g.gridx = 3; form.add(textField_denumire_planta, g);
-        g.gridx = 4; form.add(new JLabel("Tip:"), g);
-        g.gridx = 5; form.add(textField_tip, g);
+        g.gridx = 3; form.add(textField_denumire, g);
 
+        // rând 2
         g.gridy = 1;
-        g.gridx = 0; form.add(new JLabel("Specie:"), g);
-        g.gridx = 1; form.add(textField_specie, g);
+        g.gridx = 0; form.add(new JLabel("Tip:"), g);
+        g.gridx = 1; form.add(textField_tip, g);
+        g.gridx = 2; form.add(new JLabel("Specie:"), g);
+        g.gridx = 3; form.add(textField_specie, g);
+
+        // rând 3
+        g.gridy = 2;
+        g.gridx = 0; form.add(new JLabel("Carnivoră:"), g);
+        g.gridx = 1; form.add(checkBoxCarnivora, g);
         g.gridx = 2; form.add(new JLabel("Imagine:"), g);
         g.gridx = 3; form.add(textField_imagine, g);
-        g.gridx = 4; form.add(ePlantaCarnivoraCheckBox, g);
 
-        g.gridy = 2; g.gridx = 0; g.gridwidth = 6;
-        JPanel btns = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        btns.add(adaugaPlantaButton);
-        btns.add(button_editeaza_planta);
-        btns.add(stergerePlantaButton);
-        btns.add(vizualizareListaButton);
-        btns.add(salvareListaPlanteButton);
+        // rând 4 – butoane CRUD
+        g.gridy = 3; g.gridx = 0; g.gridwidth = 4;
+        JPanel btns = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        btns.add(add); btns.add(edit); btns.add(del); btns.add(view);
         form.add(btns, g);
-        return form;
-    }
 
-    private JPanel buildPlanteSortFilter() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        panel.setBorder(BorderFactory.createTitledBorder("Filtrare & Sortare"));
-        panel.add(new JLabel("Tip:"));    panel.add(textField_tip);
-        panel.add(new JLabel("Specie:")); panel.add(textField_specie);
-        panel.add(ePlantaCarnivoraCheckBox);
-        panel.add(filtrareListaPlanteButton);
-        panel.add(new JLabel("  Sortare:"));
-        panel.add(ComboBox_sort);
-        return panel;
-    }
+        // ─── Filtrare / Sortare ────────────────────────────────────
+        JPanel filters = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        filters.setBorder(BorderFactory.createTitledBorder("Filtrare & Sortare"));
+        filters.add(new JLabel("Tip:"));
+        filters.add(filter_tip);
+        filters.add(new JLabel("Specie:"));
+        filters.add(filter_specie);
+        filters.add(new JLabel("Carnivoră:"));
+        filters.add(comboCarnivoraFiltru);
+        filters.add(filter);
+        filters.add(new JLabel(" Sortează după:"));
+        filters.add(combo_sort);
+        filters.add(sort);
 
-    private JPanel buildExemplareTab() {
+        // ─── Tabel ─────────────────────────────────────────────────
+        tablePlante.setDefaultRenderer(Object.class, new ImageTableCellRenderer());
+        tablePlante.setRowHeight(100);
+        JScrollPane scroll = new JScrollPane(tablePlante);
+        scroll.setBorder(BorderFactory.createTitledBorder("Lista plantelor"));
+
+        // ─── Asamblare finală ─────────────────────────────────────
         JPanel panel = new JPanel(new BorderLayout(8, 8));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        panel.add(buildExemplareForm(), BorderLayout.NORTH);
-        panel.add(new JScrollPane(table2), BorderLayout.CENTER);
-        panel.add(buildExemplareCautare(), BorderLayout.SOUTH);
+        panel.add(form, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(filters, BorderLayout.SOUTH);
         return panel;
     }
 
-    private JPanel buildExemplareForm() {
-        JPanel form = new JPanel(new GridBagLayout());
-        form.setBorder(BorderFactory.createTitledBorder("Detalii exemplar"));
-        GridBagConstraints g = new GridBagConstraints();
-        g.insets = new Insets(4, 6, 4, 6);
-        g.anchor = GridBagConstraints.WEST;
+    private JPanel buildExemplarePanel() {
+        JButton add = new JButton("Adaugă");
+        JButton edit = new JButton("Editează");
+        JButton del = new JButton("Șterge");
+        JButton search = new JButton("Caută");
 
-        g.gridy = 0;
-        g.gridx = 0; form.add(new JLabel("ID:"), g);
-        g.gridx = 1; form.add(textField_id_exemplar, g);
-        g.gridx = 2; form.add(new JLabel("Zona:"), g);
-        g.gridx = 3; form.add(textField_zona, g);
-        g.gridx = 4; form.add(new JLabel("Imagine:"), g);
-        g.gridx = 5; form.add(textField_imagine_exemplar, g);
+        add.addActionListener(e -> presenter.adaugaExemplar());
+        edit.addActionListener(e -> presenter.actualizeazaExemplar());
+        del.addActionListener(e -> presenter.stergeExemplar());
+        search.addActionListener(e -> presenter.cautaExemplare());
 
-        g.gridy = 1; g.gridx = 0; g.gridwidth = 6;
-        JPanel btns = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        btns.add(adaugaExemplarButton);
-        btns.add(button_editeaza_exemplar);
-        btns.add(stergeExemplarButton);
-        form.add(btns, g);
-        return form;
-    }
+        // --- rând 1: detalii exemplar ---
+        JPanel formTop = new JPanel(new GridLayout(2, 4, 8, 6));
+        formTop.setBorder(BorderFactory.createTitledBorder("Detalii exemplar"));
+        formTop.add(new JLabel("ID:"));
+        formTop.add(textField_exemplar_id);
+        formTop.add(new JLabel("Zonă:"));
+        formTop.add(textField_zona);
 
-    private JPanel buildExemplareCautare() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        panel.setBorder(BorderFactory.createTitledBorder("Căutare după specie"));
-        panel.add(new JLabel("Specie:"));
-        panel.add(textField_cauta);
-        panel.add(cautaButton);
+        formTop.add(new JLabel("Imagine (cale sau fișier):"));
+        formTop.add(textField_imagine_ex);
+        formTop.add(new JLabel("ID Plantă asociată:"));
+        formTop.add(textField_exemplar_planta_id);
+
+        // --- rând 2: butoane ---
+        JPanel btns = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
+        btns.add(add);
+        btns.add(edit);
+        btns.add(del);
+
+        // --- tabel ---
+        tableExemplare.setDefaultRenderer(Object.class, new ImageTableCellRenderer());
+        tableExemplare.setRowHeight(100);
+        JScrollPane scroll = new JScrollPane(tableExemplare);
+        scroll.setBorder(BorderFactory.createTitledBorder("Lista exemplarelor"));
+
+        // --- căutare ---
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
+        searchPanel.setBorder(BorderFactory.createTitledBorder("Căutare după specie"));
+        searchPanel.add(new JLabel("Specie:"));
+        searchPanel.add(textField_cauta);
+        searchPanel.add(search);
+
+        // --- asamblare finală ---
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
+        JPanel top = new JPanel(new BorderLayout());
+        top.add(formTop, BorderLayout.CENTER);
+        top.add(btns, BorderLayout.SOUTH);
+
+        panel.add(top, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(searchPanel, BorderLayout.SOUTH);
         return panel;
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    // POPULARE FORMULARE DIN TABEL
+    // GETTERS INTERFAȚĂ
     // ══════════════════════════════════════════════════════════════════════════
+    public String getPlantaDenumire() { return textField_denumire.getText(); }
+    public String getPlantaTip() { return textField_tip.getText(); }
+    public String getPlantaSpecie() { return textField_specie.getText(); }
 
-    private void populateFormWithSelectedRow() {
-        int row = table1.getSelectedRow();
-        if (row == -1) return;
-        textField_planta_id.setText(table1.getValueAt(row, 0).toString());
-        textField_denumire_planta.setText(table1.getValueAt(row, 1).toString());
-        textField_tip.setText(table1.getValueAt(row, 2).toString());
-        textField_specie.setText(table1.getValueAt(row, 3).toString());
-        ePlantaCarnivoraCheckBox.setSelected("Da".equals(table1.getValueAt(row, 4).toString()));
-        textField_imagine.setText(table1.getValueAt(row, 5).toString());
+    @Override
+    public boolean isPlantaCarnivora() {
+        return checkBoxCarnivora.isSelected();
     }
 
-    private void populateExemplarFormWithSelectedRow() {
-        int row = table2.getSelectedRow();
-        if (row == -1) return;
-        textField_id_exemplar.setText(table2.getValueAt(row, 0).toString());
-        textField_zona.setText(table2.getValueAt(row, 1).toString());
-        textField_imagine_exemplar.setText(table2.getValueAt(row, 2).toString());
-        textField_planta_id.setText(table2.getValueAt(row, 3).toString());
-    }
+    public String getPlantaId() { return textField_planta_id.getText(); }
+    public String getPlantaImagePath() { return textField_imagine.getText(); }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // IMPLEMENTARE GradinaBotanicaGUI
-    // ══════════════════════════════════════════════════════════════════════════
+    public String getExemplarId() { return textField_exemplar_id.getText(); }
+    public String getExemplarZona() { return textField_zona.getText(); }
+    public String getExemplarImagine() { return textField_imagine_ex.getText(); }
+    public String getExemplarPlantaId() { return textField_exemplar_planta_id.getText(); }
 
-    @Override public String getPlantaDenumire()  { return textField_denumire_planta.getText(); }
-    @Override public String getPlantaTip()        { return textField_tip.getText(); }
-    @Override public String getPlantaSpecie()     { return textField_specie.getText(); }
-    @Override public boolean isPlantaCarnivora()  { return ePlantaCarnivoraCheckBox.isSelected(); }
-    @Override public String getPlantaId()         { return textField_planta_id.getText(); }
-    @Override public String getPlantaImagePath()  { return textField_imagine.getText(); }
-
-    @Override public String getExemplarId()       { return textField_id_exemplar.getText(); }
-    @Override public String getExemplarZona()     { return textField_zona.getText(); }
-    @Override public String getExemplarImagine()  { return textField_imagine_exemplar.getText(); }
-    @Override public String getExemplarPlantaId() { return textField_planta_id.getText(); }
-
-    @Override public String getSortCriteria()     { return (String) ComboBox_sort.getSelectedItem(); }
-    @Override public String getFilterTip()        { return textField_tip.getText(); }
-    @Override public String getFilterSpecie()     { return textField_cauta.getText(); }
+    public String getSortCriteria() { return (String) combo_sort.getSelectedItem(); }
+    public String getFilterTip() { return filter_tip.getText(); }
+    public String getFilterSpecie() { return filter_specie.getText().isEmpty() ? textField_cauta.getText() : filter_specie.getText(); }
 
     @Override
     public Boolean getFilterCarnivora() {
-        return ePlantaCarnivoraCheckBox.isSelected() ? true : null;
-    }
-
-    @Override
-    public void setTextAreaContent(String content) {
-        textArea_afisare_lista.setText(content);
-    }
-
-    @Override
-    public String getExportFilePath() {
-        JFileChooser fc = new JFileChooser();
-        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
-            return fc.getSelectedFile().getAbsolutePath();
+        String val = (String) comboCarnivoraFiltru.getSelectedItem();
+        if ("Da".equalsIgnoreCase(val)) return true;
+        if ("Nu".equalsIgnoreCase(val)) return false;
         return null;
     }
 
-    @Override
-    public void setTableData(String[][] data, String[] columnNames) {
-        table1.setModel(new DefaultTableModel(data, columnNames));
+    public void setTextAreaContent(String text) { textArea.setText(text); }
+
+    public void setTableData(String[][] data, String[] col) {
+        tablePlante.setModel(new DefaultTableModel(data, col));
     }
 
-    @Override
-    public void setExemplarTableData(String[][] data, String[] columnNames) {
-        table2.setModel(new DefaultTableModel(data, columnNames));
-        table2.revalidate();
-        table2.repaint();
+    public void setExemplarTableData(String[][] data, String[] col) {
+        tableExemplare.setModel(new DefaultTableModel(data, col));
     }
 
-    @Override
-    public void showMessage(String title, String message) {
-        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+    public void showMessage(String title, String msg) {
+        JOptionPane.showMessageDialog(this, msg, title, JOptionPane.INFORMATION_MESSAGE);
     }
 
-    @Override public void addAddPlantsListener(ActionListener l)      {}
-    @Override public void addEditPlantsListener(ActionListener l)     {}
-    @Override public void addDeletePlantsListener(ActionListener l)   {}
-    @Override public void addFilterPlantsListener(ActionListener l)   {}
-    @Override public void addSortPlantsListener(ActionListener l)     {}
-    @Override public void addViewPlantsListener(ActionListener l)     {}
-    @Override public void addAddExemplarListener(ActionListener l)    {}
-    @Override public void addEditExemplarListener(ActionListener l)   {}
-    @Override public void addDeleteExemplarListener(ActionListener l) {}
-    @Override public void addViewExemplarsListener(ActionListener l)  {}
-    @Override public void addSearchExemplarsListener(ActionListener l){}
+    // ══════════════════════════════════════════════════════════════════════════
+    // RENDERER IMAGINI
+    // ══════════════════════════════════════════════════════════════════════════
+    static class ImageTableCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object val,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int col) {
+            Component c = super.getTableCellRendererComponent(table, val, isSelected, hasFocus, row, col);
+            if (val != null && (val.toString().toLowerCase().endsWith(".jpg") || val.toString().toLowerCase().endsWith(".png"))) {
+                String path = val.toString();
+                if (new File(path).exists()) {
+                    ImageIcon icon = new ImageIcon(path);
+                    Image img = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                    JLabel lbl = new JLabel(new ImageIcon(img));
+                    lbl.setHorizontalAlignment(CENTER);
+                    return lbl;
+                }
+            }
+            return c;
+        }
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(DesktopAplic::new);

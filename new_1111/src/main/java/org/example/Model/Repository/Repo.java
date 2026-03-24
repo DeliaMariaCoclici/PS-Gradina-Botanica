@@ -15,14 +15,11 @@ public class Repo {
     protected boolean executeUpdate(String sql, Object... params) {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            for (int i = 0; i < params.length; i++) {
+            for (int i = 0; i < params.length; i++)
                 stmt.setObject(i + 1, params[i]);
-            }
             return stmt.executeUpdate() > 0;
-
         } catch (SQLException e) {
-            System.err.println("[DB ERROR] " + e.getMessage() + " | SQLState: " + e.getSQLState());
+            System.err.println("[DB ERROR] " + e.getMessage());
             return false;
         }
     }
@@ -32,7 +29,7 @@ public class Repo {
              Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         } catch (SQLException e) {
-            System.err.println("[INIT ERROR] " + e.getMessage() + " | SQLState: " + e.getSQLState());
+            System.err.println("[INIT ERROR] " + e.getMessage());
         }
     }
 }

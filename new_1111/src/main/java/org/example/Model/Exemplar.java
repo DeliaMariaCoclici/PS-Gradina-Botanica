@@ -5,7 +5,7 @@ public class Exemplar {
     private String zona;
     private String imagine;
     private int plantaId;
-    private String denumirePlanta; // din JOIN, nu stocat în DB
+    private String denumirePlanta;
 
     public Exemplar(int id, String zona, String imagine, int plantaId) {
         this.id = id;
@@ -20,18 +20,15 @@ public class Exemplar {
     }
 
     public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
     public String getZona() { return zona; }
-    public void setZona(String zona) { this.zona = zona; }
-
     public String getImagine() { return imagine; }
-    public void setImagine(String imagine) { this.imagine = imagine; }
-
     public int getPlantaId() { return plantaId; }
-    public void setPlantaId(int plantaId) { this.plantaId = plantaId; }
-
     public String getDenumirePlanta() { return denumirePlanta; }
+
+    public void setId(int id) { this.id = id; }
+    public void setZona(String zona) { this.zona = zona; }
+    public void setImagine(String imagine) { this.imagine = imagine; }
+    public void setPlantaId(int plantaId) { this.plantaId = plantaId; }
     public void setDenumirePlanta(String denumirePlanta) { this.denumirePlanta = denumirePlanta; }
 
     @Override

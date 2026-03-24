@@ -17,15 +17,6 @@ public class Planta {
         this.imagePath = imagePath;
     }
 
-    public Planta(Planta other) {
-        this.id = other.id;
-        this.denumire = other.denumire;
-        this.tip = other.tip;
-        this.specie = other.specie;
-        this.plantaCarnivora = other.plantaCarnivora;
-        this.imagePath = other.imagePath;
-    }
-
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
