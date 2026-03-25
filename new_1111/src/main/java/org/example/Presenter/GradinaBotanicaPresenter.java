@@ -25,9 +25,9 @@ public class GradinaBotanicaPresenter {
         afiseazaToateExemplarele();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ══════════
     // PLANTE
-    // ══════════════════════════════════════════════════════════════════════════
+    // ══════════
 
     public void adaugaPlanta() {
         try {
@@ -126,9 +126,9 @@ public class GradinaBotanicaPresenter {
         actualizeazaListaText();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ═══════════
     // EXEMPLARE
-    // ══════════════════════════════════════════════════════════════════════════
+    // ═══════════
 
     public void adaugaExemplar() {
         try {
@@ -214,9 +214,6 @@ public class GradinaBotanicaPresenter {
         actualizeazaListaText();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // METODE AUXILIARE
-    // ══════════════════════════════════════════════════════════════════════════
 
     private Planta obtineDatePlanta() {
         try {
@@ -250,9 +247,9 @@ public class GradinaBotanicaPresenter {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════
     // RAPORT TEXTUAL (TABEL "LISTĂ")
-    // ══════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════
 
     private void actualizeazaListaText() {
         StringBuilder sb = new StringBuilder();
